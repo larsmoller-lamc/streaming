@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Filmaften — vores watchlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* Rambøll CVI */
+    --cyan:#009DF0; --ocean:#05326E; --forest:#125A40; --heath:#62294B;
+    --mountain:#273943; --grass:#ADD095; --pebble:#E3E1D8; --field:#FF8855; --sand:#FFE682;
+    /* Cinema key */
+    --bg-1:#041d40; --bg-2:#0a1119; --panel:rgba(255,255,255,.045);
+    --panel-strong:rgba(255,255,255,.07); --line:rgba(0,157,240,.16);
+    --ink:#eef3f8; --muted:#aab8c6; --muted-2:#7f909f;
+    --radius:14px; --radius-sm:9px;
+    --shadow:0 18px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink); min-height:100vh; line-height:1.45;
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(0,157,240,.22), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(98,41,75,.28), transparent 60%),
+      linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 62%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 80px}
+
+  /* ---------- Header / marquee ---------- */
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .mark{width:46px;height:46px;flex:0 0 auto;filter:drop-shadow(0 4px 12px rgba(0,157,240,.5))}
+  .brand h1{
+    font-size:clamp(26px,4.4vw,40px);font-weight:800;letter-spacing:.14em;margin:0;
+    text-transform:uppercase;
+    background:linear-gradient(180deg,#fff, #cfe7fb);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .brand p{margin:2px 0 0;color:var(--muted);font-weight:600;font-size:14px;letter-spacing:.02em}
+  .count-badge{
+    margin-left:auto;background:var(--panel);border:1px solid var(--line);
+    padding:8px 14px;border-radius:999px;font-weight:700;font-size:14px;color:var(--pebble);white-space:nowrap
+  }
+
+  /* ---------- Banner ---------- */
+  .banner{
+    display:none;background:rgba(255,136,85,.12);border:1px solid rgba(255,136,85,.45);
+    color:#ffd9c4;padding:14px 16px;border-radius:var(--radius);margin-bottom:20px;font-weight:600;font-size:14px
+  }
+  .banner code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;font-size:13px}
+
+  /* ---------- Add bar ---------- */
+  .add{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;margin-bottom:18px;box-shadow:var(--shadow)
+  }
+  .add-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.grow{flex:1 1 260px}
+  label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2)}
+  input[type=text], select{
+    font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);
+    background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:11px 13px;outline:none;transition:border-color .15s, box-shadow .15s;width:100%
+  }
+  input[type=text]::placeholder{color:var(--muted-2);font-weight:600}
+  input[type=text]:focus, select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,157,240,.18)}
+  select{appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23aab8c6' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+
+  .mette-check{display:flex;align-items:center;gap:9px;background:rgba(0,0,0,.28);
+    border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 14px;cursor:pointer;user-select:none;height:44px;font-weight:700;font-size:14px}
+  .mette-check input{width:18px;height:18px;accent-color:var(--field);cursor:pointer}
+  .mette-check .heart{color:var(--field)}
+
+  .btn{font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;border:none;border-radius:var(--radius-sm);
+    padding:12px 20px;transition:transform .12s, box-shadow .15s, background .15s;letter-spacing:.02em;height:44px;white-space:nowrap}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--cyan);color:#04263f;box-shadow:0 8px 20px rgba(0,157,240,.35)}
+  .btn-primary:hover{background:#2ab0f6}
+  .btn-primary:disabled{opacity:.55;cursor:default;box-shadow:none}
+  .form-msg{margin-top:10px;font-size:14px;font-weight:700;min-height:18px}
+  .form-msg.err{color:var(--field)} .form-msg.ok{color:var(--grass)}
+  .hint{margin-top:8px;font-size:13px;color:var(--muted-2);font-weight:600}
+
+  /* ---------- Controls ---------- */
+  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+  .search-wrap{position:relative;flex:1 1 280px}
+  .search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.55}
+  #search{padding-left:40px}
+  .seg{display:flex;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:var(--radius-sm);padding:3px;gap:2px}
+  .seg button{font-family:inherit;font-weight:700;font-size:14px;color:var(--muted);background:none;border:none;
+    padding:8px 15px;border-radius:7px;cursor:pointer;transition:.15s}
+  .seg button.active{background:var(--cyan);color:#04263f}
+  .toggle{font-family:inherit;font-weight:700;font-size:14px;color:var(--muted);background:rgba(0,0,0,.28);
+    border:1px solid var(--line);border-radius:var(--radius-sm);padding:9px 15px;cursor:pointer;transition:.15s}
+  .toggle.active{background:var(--field);color:#3a1400;border-color:var(--field)}
+  #filterStreaming{width:auto;min-width:150px}
+  .btn-roll{background:linear-gradient(135deg,var(--sand),#ffcf4d);color:#4a3600;
+    box-shadow:0 8px 20px rgba(255,230,130,.28);margin-left:auto}
+  .btn-roll:hover{filter:brightness(1.05)}
+
+  /* ---------- Grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    display:flex;flex-direction:column;transition:transform .18s, box-shadow .18s, border-color .18s;position:relative}
+  .card:hover{transform:translateY(-5px);box-shadow:var(--shadow);border-color:rgba(0,157,240,.4)}
+  .poster{position:relative;aspect-ratio:2/3;background:linear-gradient(150deg,var(--mountain),var(--ocean));overflow:hidden}
+  .poster img{width:100%;height:100%;object-fit:cover;display:block}
+  .poster .noimg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:34px;color:rgba(255,255,255,.22);text-align:center;padding:10px}
+  .poster .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,20,40,.55) 0%,transparent 26%,transparent 62%,rgba(4,17,25,.92) 100%)}
+  .badge{position:absolute;z-index:2;font-size:11px;font-weight:800;letter-spacing:.05em;padding:4px 9px;border-radius:999px;text-transform:uppercase}
+  .badge.type{top:9px;left:9px;background:rgba(4,20,40,.7);backdrop-filter:blur(4px)}
+  .badge.type.movie{color:var(--cyan);border:1px solid rgba(0,157,240,.55)}
+  .badge.type.series{color:var(--grass);border:1px solid rgba(173,208,149,.55)}
+  .badge.mette{top:9px;right:9px;background:var(--field);color:#3a1400}
+  .rating{position:absolute;bottom:9px;left:9px;z-index:2;display:flex;align-items:center;gap:4px;
+    background:rgba(4,17,25,.72);backdrop-filter:blur(4px);border:1px solid rgba(255,230,130,.35);
+    padding:4px 9px;border-radius:999px;font-weight:800;font-size:13px;color:var(--sand)}
+  .del{position:absolute;top:8px;right:8px;z-index:3;width:26px;height:26px;border-radius:50%;border:none;
+    background:rgba(4,17,25,.75);color:#fff;font-size:16px;line-height:1;cursor:pointer;opacity:0;transition:.15s;font-weight:700}
+  .card:hover .del{opacity:1}
+  .del:hover{background:var(--field);color:#3a1400}
+  .card.for-mette:hover .del{right:8px} /* keep clear of mette badge on hover via opacity only */
+  .card-body{padding:12px 13px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .card-body h3{margin:0;font-size:15px;font-weight:800;line-height:1.25}
+  .meta{font-size:12.5px;color:var(--muted);font-weight:600}
+  .actors{font-size:12px;color:var(--muted-2);font-weight:600;line-height:1.35}
+  .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px}
+  .svc{font-size:11px;font-weight:800;letter-spacing:.03em;color:var(--cyan);background:rgba(0,157,240,.1);
+    border:1px solid rgba(0,157,240,.28);padding:3px 8px;border-radius:6px;white-space:nowrap}
+  .date{font-size:11px;color:var(--muted-2);font-weight:600;white-space:nowrap}
+
+  .empty{grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--muted);font-weight:600;font-size:16px}
+  .empty .big{font-size:40px;margin-bottom:14px;opacity:.5}
+
+  /* ---------- Spotlight ---------- */
+  .spotlight{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(600px 600px at 50% 42%, rgba(0,157,240,.14), rgba(2,10,20,.94) 62%)}
+  .spotlight.show{display:flex}
+  .spot-card{max-width:760px;width:100%;display:flex;gap:26px;align-items:center;
+    animation:spotIn .5s cubic-bezier(.2,.9,.25,1)}
+  .spot-poster{flex:0 0 220px;aspect-ratio:2/3;border-radius:var(--radius);overflow:hidden;
+    box-shadow:0 0 0 3px rgba(0,157,240,.35), 0 30px 70px rgba(0,0,0,.7)}
+  .spot-poster img{width:100%;height:100%;object-fit:cover;display:block}
+  .spot-poster .noimg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(150deg,var(--mountain),var(--ocean));font-weight:800;font-size:40px;color:rgba(255,255,255,.25)}
+  .spot-info{flex:1;min-width:0}
+  .spot-eyebrow{color:var(--sand);font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:13px;margin-bottom:8px}
+  .spot-info h2{margin:0 0 6px;font-size:clamp(24px,4vw,34px);font-weight:800;line-height:1.15}
+  .spot-info .sub{color:var(--muted);font-weight:600;margin-bottom:14px}
+  .spot-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .spot-chips span{font-weight:700;font-size:13px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel)}
+  .spot-plot{color:var(--pebble);font-size:14px;font-weight:600;margin-bottom:20px;max-height:120px;overflow:auto}
+  .spot-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn-ghost{background:var(--panel);border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{background:var(--panel-strong)}
+  @keyframes spotIn{from{opacity:0;transform:scale(.92) translateY(14px)}to{opacity:1;transform:none}}
+
+  a.imdb-link{color:var(--cyan);text-decoration:none;font-weight:800}
+  a.imdb-link:hover{text-decoration:underline}
+
+  @media (max-width:640px){
+    .spot-card{flex-direction:column;text-align:center}
+    .spot-poster{flex:0 0 auto;width:170px}
+    .spot-chips,.spot-actions{justify-content:center}
+    .btn-roll{margin-left:0;width:100%}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="3" y="14" width="42" height="28" rx="4" fill="#05326E" stroke="#009DF0" stroke-width="2"/>
+      <path d="M6 14l7-8 6 8M18 14l7-8 6 8M30 14l7-8 6 8" stroke="#009DF0" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="24" cy="28" r="6" fill="#009DF0"/>
+      <path d="M22 25.5v5l4-2.5-4-2.5z" fill="#04263f"/>
+    </svg>
+    <div class="brand">
+      <h1>Filmaften</h1>
+      <p>Film &amp; serier vi vil se</p>
+    </div>
+    <div class="count-badge" id="count">0 titler</div>
+  </header>
+
+  <div class="banner" id="configBanner"></div>
+
+  <!-- Add -->
+  <div class="add">
+    <div class="add-row">
+      <div class="field grow">
+        <label for="imdbInput">IMDB-id eller -link</label>
+        <input type="text" id="imdbInput" placeholder="tt0082971  ·  eller https://www.imdb.com/title/tt0082971" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="serviceSelect">Streamingtjeneste</label>
+        <select id="serviceSelect"></select>
+      </div>
+      <label class="mette-check" for="metteCheck">
+        <input type="checkbox" id="metteCheck" />
+        Til Mette <span class="heart">♥</span>
+      </label>
+      <button class="btn btn-primary" id="addBtn">Tilføj</button>
+    </div>
+    <div class="form-msg" id="formMsg"></div>
+    <div class="hint">Indsæt et IMDB-id eller -link, vælg tjeneste, og resten (titel, rating, plakat, skuespillere) hentes automatisk.</div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aab8c6" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="search" placeholder="Søg på titel eller skuespiller…" autocomplete="off" />
+    </div>
+    <div class="seg" id="filterType">
+      <button data-type="all" class="active">Alle</button>
+      <button data-type="movie">Film</button>
+      <button data-type="series">Serier</button>
+    </div>
+    <button class="toggle" id="metteToggle">Kun til Mette ♥</button>
+    <select id="filterStreaming"><option value="all">Alle tjenester</option></select>
+    <button class="btn btn-roll" id="rollBtn">🎲 Kast terning</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Spotlight -->
+<div class="spotlight" id="spotlight">
+  <div class="spot-card" id="spotBody"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* =======================================================================
+   KONFIGURATION  — udfyld disse 3 ting (se README.md)
+   ======================================================================= */
+const firebaseConfig = {
+  apiKey:            "DIN_FIREBASE_API_KEY",
+  authDomain:        "DIT_PROJECT.firebaseapp.com",
+  projectId:         "DIT_PROJECT_ID",
+  storageBucket:     "DIT_PROJECT.appspot.com",
+  messagingSenderId: "DIT_SENDER_ID",
+  appId:             "DIN_APP_ID"
+};
+const OMDB_API_KEY = "DIN_OMDB_NØGLE";     // gratis på omdbapi.com — påkrævet
+const TMDB_API_KEY = "";                    // valgfri: giver top 7 skuespillere (themoviedb.org)
+
+// Rediger listen efter dine egne tjenester:
+const STREAMING_SERVICES = ["Netflix","Max","Disney+","Viaplay","TV 2 Play","SkyShowtime","Prime Video","Apple TV+","DRTV"];
+/* ======================================================================= */
+
+const $ = s => document.querySelector(s);
+const grid = $("#grid"), countEl = $("#count"), formMsg = $("#formMsg"), banner = $("#configBanner");
+const state = { search:"", type:"all", metteOnly:false, streaming:"all" };
+let items = [];
+
+/* ---- Config guard ---- */
+const cfgMissing =
+  firebaseConfig.apiKey.includes("DIN_") || firebaseConfig.projectId.includes("DIT_");
+const omdbMissing = OMDB_API_KEY.includes("DIN_") || !OMDB_API_KEY;
+
+if (cfgMissing || omdbMissing){
+  banner.style.display = "block";
+  banner.innerHTML = "⚙️ <b>Næsten klar.</b> Udfyld " +
+    (cfgMissing ? "<code>firebaseConfig</code>" : "") +
+    (cfgMissing && omdbMissing ? " og " : "") +
+    (omdbMissing ? "<code>OMDB_API_KEY</code>" : "") +
+    " øverst i <code>index.html</code>. Se <code>README.md</code> for opskriften.";
+}
+
+/* ---- Fill selects ---- */
+const serviceSelect = $("#serviceSelect"), filterStreaming = $("#filterStreaming");
+for (const s of STREAMING_SERVICES){
+  serviceSelect.insertAdjacentHTML("beforeend", `<option value="${esc(s)}">${esc(s)}</option>`);
+  filterStreaming.insertAdjacentHTML("beforeend", `<option value="${esc(s)}">${esc(s)}</option>`);
+}
+
+/* ---- Firebase ---- */
+let db = null, col = null;
+if (!cfgMissing){
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    col = collection(db, "watchlist");
+    onSnapshot(query(col, orderBy("dateAdded","desc")), snap => {
+      items = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      render();
+    }, err => {
+      banner.style.display="block";
+      banner.innerHTML = "⚠️ Kunne ikke læse databasen: " + esc(err.message) +
+        " — tjek dine Firestore-regler (se README.md).";
+    });
+  } catch(e){
+    banner.style.display="block";
+    banner.innerHTML = "⚠️ Firebase-fejl: " + esc(e.message);
+  }
+}
+
+/* ---- Helpers ---- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>(
+  {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function fmtDate(ts){
+  if (!ts || !ts.toDate) return "";
+  return ts.toDate().toLocaleDateString("da-DK",{day:"numeric",month:"short",year:"numeric"});
+}
+function typeLabel(t){ return t==="series" ? "Serie" : "Film"; }
+function initials(t){ return (t||"?").split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase(); }
+
+/* ---- OMDb + TMDB ---- */
+async function fetchOmdb(id){
+  const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(OMDB_API_KEY)}&i=${id}&plot=short`;
+  const r = await fetch(url);
+  return r.json();
+}
+async function fetchTmdbCast(imdbId, type){
+  if (!TMDB_API_KEY) return [];
+  try{
+    const find = await (await fetch(
+      `https://api.themoviedb.org/3/find/${imdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id`)).json();
+    const isTv = type === "series";
+    const arr = isTv ? find.tv_results : find.movie_results;
+    if (!arr || !arr.length) return [];
+    const tmdbId = arr[0].id;
+    const credits = await (await fetch(
+      `https://api.themoviedb.org/3/${isTv?"tv":"movie"}/${tmdbId}/credits?api_key=${TMDB_API_KEY}`)).json();
+    return (credits.cast||[]).slice(0,7).map(c=>c.name);
+  }catch{ return []; }
+}
+
+/* ---- Add ---- */
+const addBtn = $("#addBtn"), imdbInput = $("#imdbInput"), metteCheck = $("#metteCheck");
+async function handleAdd(){
+  const m = imdbInput.value.trim().match(/tt\d{7,9}/);
+  if (!m){ msg("Skriv et gyldigt IMDB-id (fx tt0082971) eller -link.", true); return; }
+  if (omdbMissing){ msg("Tilføj din OMDb-nøgle øverst i index.html først.", true); return; }
+  if (!col){ msg("Firebase er ikke konfigureret endnu.", true); return; }
+  const imdbId = m[0];
+  if (items.some(it=>it.imdbId===imdbId)){ msg("Den er allerede på listen.", true); return; }
+
+  addBtn.disabled = true; addBtn.textContent = "Henter…"; msg("", false);
+  try{
+    const d = await fetchOmdb(imdbId);
+    if (d.Response === "False"){ msg(d.Error || "Ikke fundet på IMDB.", true); return; }
+
+    let actors = (d.Actors && d.Actors!=="N/A") ? d.Actors.split(",").map(s=>s.trim()) : [];
+    const type = d.Type === "series" ? "series" : "movie";
+    const tmdb = await fetchTmdbCast(imdbId, type);
+    if (tmdb.length) actors = tmdb;
+
+    await addDoc(col, {
+      imdbId,
+      title:    d.Title || "",
+      year:     d.Year || "",
+      type,
+      poster:   (d.Poster && d.Poster!=="N/A") ? d.Poster : "",
+      imdbRating:(d.imdbRating && d.imdbRating!=="N/A") ? d.imdbRating : "",
+      genre:    (d.Genre && d.Genre!=="N/A") ? d.Genre : "",
+      runtime:  (d.Runtime && d.Runtime!=="N/A") ? d.Runtime : "",
+      plot:     (d.Plot && d.Plot!=="N/A") ? d.Plot : "",
+      actors,
+      streaming: serviceSelect.value,
+      forMette:  metteCheck.checked,
+      dateAdded: serverTimestamp()
+    });
+    imdbInput.value = ""; metteCheck.checked = false;
+    msg(`Tilføjet: ${d.Title} (${d.Year})`, false);
+  }catch(e){ msg("Noget gik galt: " + e.message, true); }
+  finally{ addBtn.disabled = false; addBtn.textContent = "Tilføj"; }
+}
+function msg(t, isErr){ formMsg.textContent = t; formMsg.className = "form-msg " + (t ? (isErr?"err":"ok") : ""); }
+
+addBtn.addEventListener("click", handleAdd);
+imdbInput.addEventListener("keydown", e=>{ if(e.key==="Enter") handleAdd(); });
+
+/* ---- Delete ---- */
+async function del(id, title){
+  if (!confirm(`Fjern "${title}" fra listen?`)) return;
+  try{ await deleteDoc(doc(db,"watchlist",id)); }catch(e){ alert("Kunne ikke slette: "+e.message); }
+}
+
+/* ---- Filters ---- */
+function filtered(){
+  const q = state.search.toLowerCase().trim();
+  return items.filter(it=>{
+    if (state.type!=="all" && it.type!==state.type) return false;
+    if (state.metteOnly && !it.forMette) return false;
+    if (state.streaming!=="all" && it.streaming!==state.streaming) return false;
+    if (q){
+      const inTitle  = (it.title||"").toLowerCase().includes(q);
+      const inActors = (it.actors||[]).some(a=>a.toLowerCase().includes(q));
+      if (!inTitle && !inActors) return false;
+    }
+    return true;
+  });
+}
+
+/* ---- Render ---- */
+function render(){
+  const list = filtered();
+  countEl.textContent = `${items.length} ${items.length===1?"titel":"titler"}`;
+
+  if (!items.length){
+    grid.innerHTML = `<div class="empty"><div class="big">🎬</div>
+      Ingen titler endnu.<br>Tilføj den første via IMDB-id herover.</div>`;
+    return;
+  }
+  if (!list.length){
+    grid.innerHTML = `<div class="empty"><div class="big">🔍</div>Ingen match på det filter.</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(it=>{
+    const actorsShown = (it.actors||[]).slice(0,4).join(", ") + ((it.actors||[]).length>4 ? " m.fl." : "");
+    const poster = it.poster
+      ? `<img src="${esc(it.poster)}" alt="${esc(it.title)}" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="noimg" style="display:none">${esc(initials(it.title))}</div>`
+      : `<div class="noimg">${esc(initials(it.title))}</div>`;
+    return `<div class="card ${it.forMette?'for-mette':''}">
+      <div class="poster">
+        ${poster}
+        <div class="grad"></div>
+        <span class="badge type ${it.type}">${typeLabel(it.type)}</span>
+        ${it.forMette ? `<span class="badge mette">Mette ♥</span>` : ``}
+        ${it.imdbRating ? `<span class="rating">★ ${esc(it.imdbRating)}</span>` : ``}
+        <button class="del" title="Fjern" data-del="${esc(it.id)}" data-title="${esc(it.title)}">×</button>
+      </div>
+      <div class="card-body">
+        <h3>${esc(it.title)}</h3>
+        <div class="meta">${esc(it.year)}${it.genre?` · ${esc(it.genre.split(",")[0])}`:""}</div>
+        ${actorsShown.trim() ? `<div class="actors" title="${esc((it.actors||[]).join(', '))}">${esc(actorsShown)}</div>` : ``}
+        <div class="foot">
+          <span class="svc">${esc(it.streaming)}</span>
+          <span class="date">${esc(fmtDate(it.dateAdded))}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll("[data-del]").forEach(b=>{
+    b.addEventListener("click", ()=> del(b.dataset.del, b.dataset.title));
+  });
+}
+
+/* ---- Control wiring ---- */
+$("#search").addEventListener("input", e=>{ state.search = e.target.value; render(); });
+$("#filterType").querySelectorAll("button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    $("#filterType").querySelector(".active").classList.remove("active");
+    b.classList.add("active"); state.type = b.dataset.type; render();
+  });
+});
+$("#metteToggle").addEventListener("click", ()=>{
+  state.metteOnly = !state.metteOnly;
+  $("#metteToggle").classList.toggle("active", state.metteOnly);
+  render();
+});
+filterStreaming.addEventListener("change", e=>{ state.streaming = e.target.value; render(); });
+
+/* ---- Dice / spotlight ---- */
+const spotlight = $("#spotlight"), spotBody = $("#spotBody");
+$("#rollBtn").addEventListener("click", ()=>{
+  const pool = filtered();
+  if (!pool.length){ msg("Ingen titler at vælge imellem — juster filteret.", true); return; }
+  showSpotlight(pool[Math.floor(Math.random()*pool.length)]);
+});
+function showSpotlight(it){
+  const poster = it.poster
+    ? `<img src="${esc(it.poster)}" alt="${esc(it.title)}">`
+    : `<div class="noimg">${esc(initials(it.title))}</div>`;
+  const chips = [];
+  if (it.imdbRating) chips.push(`<span style="color:var(--sand)">★ ${esc(it.imdbRating)} IMDB</span>`);
+  chips.push(`<span>${typeLabel(it.type)}</span>`);
+  if (it.year) chips.push(`<span>${esc(it.year)}</span>`);
+  if (it.runtime) chips.push(`<span>${esc(it.runtime)}</span>`);
+  chips.push(`<span style="color:var(--cyan)">${esc(it.streaming)}</span>`);
+  if (it.forMette) chips.push(`<span style="color:var(--field)">Til Mette ♥</span>`);
+
+  spotBody.innerHTML = `
+    <div class="spot-poster">${poster}</div>
+    <div class="spot-info">
+      <div class="spot-eyebrow">🎲 Aftenens valg</div>
+      <h2>${esc(it.title)}</h2>
+      <div class="sub">${esc((it.actors||[]).slice(0,3).join(", "))}</div>
+      <div class="spot-chips">${chips.join("")}</div>
+      ${it.plot ? `<div class="spot-plot">${esc(it.plot)}</div>` : ``}
+      <div class="spot-actions">
+        <button class="btn btn-roll" id="reroll">🎲 Kast igen</button>
+        <a class="btn btn-ghost imdb-link" href="https://www.imdb.com/title/${esc(it.imdbId)}" target="_blank" rel="noopener">IMDB ↗</a>
+        <button class="btn btn-ghost" id="spotClose">Luk</button>
+      </div>
+    </div>`;
+  spotlight.classList.add("show");
+  $("#reroll").addEventListener("click", ()=>{
+    const pool = filtered();
+    if (pool.length) showSpotlight(pool[Math.floor(Math.random()*pool.length)]);
+  });
+  $("#spotClose").addEventListener("click", closeSpot);
+}
+function closeSpot(){ spotlight.classList.remove("show"); }
+spotlight.addEventListener("click", e=>{ if (e.target===spotlight) closeSpot(); });
+document.addEventListener("keydown", e=>{ if (e.key==="Escape") closeSpot(); });
+
+render();
+</script>
+</body>
+</html>
