@@ -120,19 +120,28 @@
   .badge.type{top:9px;left:9px;background:rgba(4,20,40,.7);backdrop-filter:blur(4px)}
   .badge.type.movie{color:var(--cyan);border:1px solid rgba(0,157,240,.55)}
   .badge.type.series{color:var(--grass);border:1px solid rgba(173,208,149,.55)}
-  .badge.mette{top:9px;right:9px;background:var(--field);color:#3a1400}
+  .badge.mette{bottom:9px;right:9px;background:var(--field);color:#3a1400}
   .rating{position:absolute;bottom:9px;left:9px;z-index:2;display:flex;align-items:center;gap:4px;
     background:rgba(4,17,25,.72);backdrop-filter:blur(4px);border:1px solid rgba(255,230,130,.35);
     padding:4px 9px;border-radius:999px;font-weight:800;font-size:13px;color:var(--sand)}
-  .del{position:absolute;top:8px;right:8px;z-index:3;width:26px;height:26px;border-radius:50%;border:none;
-    background:rgba(4,17,25,.75);color:#fff;font-size:16px;line-height:1;cursor:pointer;opacity:0;transition:.15s;font-weight:700}
-  .card:hover .del{opacity:1}
-  .del:hover{background:var(--field);color:#3a1400}
-  .card.for-mette:hover .del{right:8px} /* keep clear of mette badge on hover via opacity only */
+  .card{cursor:pointer}
+  .actions{position:absolute;top:8px;right:8px;z-index:4;display:flex;gap:6px;opacity:0;transition:opacity .15s}
+  .card:hover .actions{opacity:1}
+  .act{width:28px;height:28px;border-radius:50%;border:none;background:rgba(4,17,25,.82);backdrop-filter:blur(4px);
+    color:#fff;font-size:14px;line-height:1;cursor:pointer;transition:.15s;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .act.edit:hover{background:var(--cyan);color:#04263f}
+  .act.del:hover{background:var(--field);color:#3a1400}
+  .imdb-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);z-index:3;
+    background:rgba(4,17,25,.85);backdrop-filter:blur(4px);border:1px solid var(--cyan);color:var(--cyan);
+    font-size:12px;font-weight:800;letter-spacing:.04em;padding:7px 13px;border-radius:999px;
+    opacity:0;transition:opacity .18s, transform .18s;pointer-events:none;white-space:nowrap}
+  .card:hover .imdb-hint{opacity:1;transform:translate(-50%,-50%) scale(1)}
   .card-body{padding:12px 13px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
   .card-body h3{margin:0;font-size:15px;font-weight:800;line-height:1.25}
   .meta{font-size:12.5px;color:var(--muted);font-weight:600}
   .actors{font-size:12px;color:var(--muted-2);font-weight:600;line-height:1.35}
+  .note{font-size:12px;color:var(--pebble);font-weight:600;line-height:1.35;
+    background:rgba(255,230,130,.08);border-left:2px solid var(--sand);padding:5px 8px;border-radius:5px}
   .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px}
   .svc{font-size:11px;font-weight:800;letter-spacing:.03em;color:var(--cyan);background:rgba(0,157,240,.1);
     border:1px solid rgba(0,157,240,.28);padding:3px 8px;border-radius:6px;white-space:nowrap}
@@ -166,6 +175,23 @@
 
   a.imdb-link{color:var(--cyan);text-decoration:none;font-weight:800}
   a.imdb-link:hover{text-decoration:underline}
+
+  /* ---------- Edit modal ---------- */
+  .modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;
+    background:rgba(2,10,20,.8);backdrop-filter:blur(3px)}
+  .modal.show{display:flex}
+  .modal-card{background:linear-gradient(160deg,#0b2749,#0a1119);border:1px solid var(--line);
+    border-radius:var(--radius);padding:22px;max-width:440px;width:100%;box-shadow:var(--shadow);
+    animation:spotIn .35s cubic-bezier(.2,.9,.25,1)}
+  .modal-card h2{margin:0 0 3px;font-size:20px;font-weight:800;line-height:1.2}
+  .modal-card .msub{color:var(--muted);font-weight:600;font-size:13px;margin-bottom:18px}
+  .modal-card .field{margin-bottom:14px}
+  .modal-card textarea{font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);width:100%;
+    background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 13px;
+    outline:none;resize:vertical;min-height:74px;transition:border-color .15s, box-shadow .15s}
+  .modal-card textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,157,240,.18)}
+  .modal-card textarea::placeholder{color:var(--muted-2);font-weight:600}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
 
   @media (max-width:640px){
     .spot-card{flex-direction:column;text-align:center}
@@ -231,6 +257,10 @@
     </div>
     <button class="toggle" id="metteToggle">Kun til Mette ♥</button>
     <select id="filterStreaming"><option value="all">Alle tjenester</option></select>
+    <select id="sortSelect">
+      <option value="title">Titel (A–Å)</option>
+      <option value="date">Senest tilføjet</option>
+    </select>
     <button class="btn btn-roll" id="rollBtn">🎲 Kast terning</button>
   </div>
 
@@ -242,9 +272,14 @@
   <div class="spot-card" id="spotBody"></div>
 </div>
 
+<!-- Edit -->
+<div class="modal" id="editModal">
+  <div class="modal-card" id="editBody"></div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp }
+import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =======================================================================
@@ -267,7 +302,7 @@ const STREAMING_SERVICES = ["Netflix","HBO Max","Disney+","Viaplay","TV 2 Play",
 
 const $ = s => document.querySelector(s);
 const grid = $("#grid"), countEl = $("#count"), formMsg = $("#formMsg"), banner = $("#configBanner");
-const state = { search:"", type:"all", metteOnly:false, streaming:"all" };
+const state = { search:"", type:"all", metteOnly:false, streaming:"all", sort:"title" };
 let items = [];
 
 /* ---- Config guard ---- */
@@ -395,10 +430,61 @@ async function del(id, title){
   try{ await deleteDoc(doc(db,"watchlist",id)); }catch(e){ alert("Kunne ikke slette: "+e.message); }
 }
 
-/* ---- Filters ---- */
+/* ---- Edit ---- */
+const editModal = $("#editModal"), editBody = $("#editBody");
+function openEdit(id){
+  const it = items.find(x=>x.id===id); if(!it) return;
+  const opts = STREAMING_SERVICES.map(s=>
+    `<option value="${esc(s)}" ${s===it.streaming?"selected":""}>${esc(s)}</option>`).join("");
+  editBody.innerHTML = `
+    <h2>${esc(it.title)}</h2>
+    <div class="msub">${esc(it.year)} · ${typeLabel(it.type)}</div>
+    <div class="field">
+      <label for="editService">Streamingtjeneste</label>
+      <select id="editService">${opts}</select>
+    </div>
+    <label class="mette-check" for="editMette" style="height:auto;margin-bottom:14px">
+      <input type="checkbox" id="editMette" ${it.forMette?"checked":""}/> Til Mette <span class="heart">♥</span>
+    </label>
+    <div class="field">
+      <label for="editNote">Note</label>
+      <textarea id="editNote" placeholder="Fx: Set sæson 1 · Anbefalet af Jens · Se på originalsprog">${esc(it.note||"")}</textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="editCancel">Annullér</button>
+      <button class="btn btn-primary" id="editSave">Gem</button>
+    </div>`;
+  editModal.classList.add("show");
+  $("#editCancel").addEventListener("click", closeEdit);
+  $("#editSave").addEventListener("click", async ()=>{
+    const btn = $("#editSave"); btn.disabled = true; btn.textContent = "Gemmer…";
+    try{
+      await updateDoc(doc(db,"watchlist",id), {
+        streaming: $("#editService").value,
+        forMette:  $("#editMette").checked,
+        note:      $("#editNote").value.trim()
+      });
+      closeEdit();
+    }catch(e){ alert("Kunne ikke gemme: "+e.message); btn.disabled=false; btn.textContent="Gem"; }
+  });
+}
+function closeEdit(){ editModal.classList.remove("show"); }
+editModal.addEventListener("click", e=>{ if(e.target===editModal) closeEdit(); });
+
+/* ---- Filters + sort ---- */
+function sortList(arr){
+  const a = [...arr];
+  if (state.sort === "date"){
+    const t = x => (x.dateAdded && x.dateAdded.toDate) ? x.dateAdded.toDate().getTime() : 0;
+    a.sort((x,y)=> t(y) - t(x));           // nyeste først
+  } else {
+    a.sort((x,y)=> (x.title||"").localeCompare((y.title||""), "da", {sensitivity:"base"}));
+  }
+  return a;
+}
 function filtered(){
   const q = state.search.toLowerCase().trim();
-  return items.filter(it=>{
+  const out = items.filter(it=>{
     if (state.type!=="all" && it.type!==state.type) return false;
     if (state.metteOnly && !it.forMette) return false;
     if (state.streaming!=="all" && it.streaming!==state.streaming) return false;
@@ -409,6 +495,7 @@ function filtered(){
     }
     return true;
   });
+  return sortList(out);
 }
 
 /* ---- Render ---- */
@@ -432,19 +519,24 @@ function render(){
       ? `<img src="${esc(it.poster)}" alt="${esc(it.title)}" loading="lazy"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="noimg" style="display:none">${esc(initials(it.title))}</div>`
       : `<div class="noimg">${esc(initials(it.title))}</div>`;
-    return `<div class="card ${it.forMette?'for-mette':''}">
+    return `<div class="card ${it.forMette?'for-mette':''}" data-imdb="${esc(it.imdbId)}" title="Åbn på IMDB">
       <div class="poster">
         ${poster}
         <div class="grad"></div>
         <span class="badge type ${it.type}">${typeLabel(it.type)}</span>
         ${it.forMette ? `<span class="badge mette">Mette ♥</span>` : ``}
         ${it.imdbRating ? `<span class="rating">★ ${esc(it.imdbRating)}</span>` : ``}
-        <button class="del" title="Fjern" data-del="${esc(it.id)}" data-title="${esc(it.title)}">×</button>
+        <span class="imdb-hint">Åbn på IMDB ↗</span>
+        <div class="actions">
+          <button class="act edit" title="Rediger" data-edit="${esc(it.id)}">✎</button>
+          <button class="act del" title="Fjern" data-del="${esc(it.id)}" data-title="${esc(it.title)}">×</button>
+        </div>
       </div>
       <div class="card-body">
         <h3>${esc(it.title)}</h3>
         <div class="meta">${esc(it.year)}${it.genre?` · ${esc(it.genre.split(",")[0])}`:""}</div>
         ${actorsShown.trim() ? `<div class="actors" title="${esc((it.actors||[]).join(', '))}">${esc(actorsShown)}</div>` : ``}
+        ${it.note ? `<div class="note">📝 ${esc(it.note)}</div>` : ``}
         <div class="foot">
           <span class="svc">${esc(it.streaming)}</span>
           <span class="date">${esc(fmtDate(it.dateAdded))}</span>
@@ -453,8 +545,15 @@ function render(){
     </div>`;
   }).join("");
 
+  grid.querySelectorAll(".card").forEach(card=>{
+    card.addEventListener("click", ()=>
+      window.open("https://www.imdb.com/title/"+card.dataset.imdb, "_blank", "noopener"));
+  });
   grid.querySelectorAll("[data-del]").forEach(b=>{
-    b.addEventListener("click", ()=> del(b.dataset.del, b.dataset.title));
+    b.addEventListener("click", e=>{ e.stopPropagation(); del(b.dataset.del, b.dataset.title); });
+  });
+  grid.querySelectorAll("[data-edit]").forEach(b=>{
+    b.addEventListener("click", e=>{ e.stopPropagation(); openEdit(b.dataset.edit); });
   });
 }
 
@@ -472,6 +571,7 @@ $("#metteToggle").addEventListener("click", ()=>{
   render();
 });
 filterStreaming.addEventListener("change", e=>{ state.streaming = e.target.value; render(); });
+$("#sortSelect").addEventListener("change", e=>{ state.sort = e.target.value; render(); });
 
 /* ---- Dice / spotlight ---- */
 const spotlight = $("#spotlight"), spotBody = $("#spotBody");
@@ -499,6 +599,7 @@ function showSpotlight(it){
       <h2>${esc(it.title)}</h2>
       <div class="sub">${esc((it.actors||[]).slice(0,3).join(", "))}</div>
       <div class="spot-chips">${chips.join("")}</div>
+      ${it.note ? `<div class="spot-plot" style="color:var(--sand);max-height:none;margin-bottom:12px">📝 ${esc(it.note)}</div>` : ``}
       ${it.plot ? `<div class="spot-plot">${esc(it.plot)}</div>` : ``}
       <div class="spot-actions">
         <button class="btn btn-roll" id="reroll">🎲 Kast igen</button>
@@ -515,7 +616,7 @@ function showSpotlight(it){
 }
 function closeSpot(){ spotlight.classList.remove("show"); }
 spotlight.addEventListener("click", e=>{ if (e.target===spotlight) closeSpot(); });
-document.addEventListener("keydown", e=>{ if (e.key==="Escape") closeSpot(); });
+document.addEventListener("keydown", e=>{ if (e.key==="Escape"){ closeSpot(); closeEdit(); } });
 
 render();
 </script>
