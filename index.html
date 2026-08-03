@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Filmaften — vores watchlist</title>
+<title>Filmaften - vores watchlist</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -248,7 +248,7 @@ import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, or
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =======================================================================
-   KONFIGURATION  — udfyld disse 3 ting (se README.md)
+   KONFIGURATION  - udfyld disse 3 ting (se README.md)
    ======================================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyAcqz_k5aYGXUu6k91NO9ks3zt97xZkNSI",
@@ -258,11 +258,11 @@ const firebaseConfig = {
   messagingSenderId: "44906504749",
   appId: "1:44906504749:web:20d4d3d1a41ca893088ea4"
 };
-const OMDB_API_KEY = "773e3e0a";     // gratis på omdbapi.com — påkrævet
+const OMDB_API_KEY = "773e3e0a";     // gratis på omdbapi.com - påkrævet
 const TMDB_API_KEY = "";                    // valgfri: giver top 7 skuespillere (themoviedb.org)
 
 // Rediger listen efter dine egne tjenester:
-const STREAMING_SERVICES = ["Netflix","Max","Disney+","Viaplay","TV 2 Play","SkyShowtime","Prime Video","Apple TV+","DRTV"];
+const STREAMING_SERVICES = ["Netflix","HBO Max","Disney+","Viaplay","TV 2 Play","YouSee","Prime Video","DRTV"];
 /* ======================================================================= */
 
 const $ = s => document.querySelector(s);
@@ -304,7 +304,7 @@ if (!cfgMissing){
     }, err => {
       banner.style.display="block";
       banner.innerHTML = "⚠️ Kunne ikke læse databasen: " + esc(err.message) +
-        " — tjek dine Firestore-regler (se README.md).";
+        " - tjek dine Firestore-regler (se README.md).";
     });
   } catch(e){
     banner.style.display="block";
@@ -477,7 +477,7 @@ filterStreaming.addEventListener("change", e=>{ state.streaming = e.target.value
 const spotlight = $("#spotlight"), spotBody = $("#spotBody");
 $("#rollBtn").addEventListener("click", ()=>{
   const pool = filtered();
-  if (!pool.length){ msg("Ingen titler at vælge imellem — juster filteret.", true); return; }
+  if (!pool.length){ msg("Ingen titler at vælge imellem - juster filteret.", true); return; }
   showSpotlight(pool[Math.floor(Math.random()*pool.length)]);
 });
 function showSpotlight(it){
